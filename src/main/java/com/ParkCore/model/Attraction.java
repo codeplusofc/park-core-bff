@@ -32,4 +32,14 @@ public class Attraction {
     @OneToMany(mappedBy = "attraction", cascade = CascadeType.ALL)
     private List<Event> events;
 
+    public Attraction(Long id, String name, String description, AttractionType type, int maximumCapacity, List<Ticket> tickets, List<Feedback> feedbacks, List<Event> events) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.type = type;
+        this.maximumCapacity = maximumCapacity;
+        this.tickets = tickets;
+        this.feedbacks = feedbacks;
+        this.events = events;
+    }
 }
