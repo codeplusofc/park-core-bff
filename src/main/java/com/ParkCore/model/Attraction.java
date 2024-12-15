@@ -42,4 +42,7 @@ public class Attraction {
         this.feedbacks = feedbacks;
         this.events = events;
     }
+    public Attraction(){
+
+    }
 }
