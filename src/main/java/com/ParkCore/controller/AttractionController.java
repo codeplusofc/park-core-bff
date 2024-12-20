@@ -1,5 +1,7 @@
 package com.ParkCore.controller;
 
+import com.ParkCore.dto.attractionDto.AttractionRequestDTO;
+import com.ParkCore.dto.attractionDto.AttractionResponseDTO;
 import com.ParkCore.enums.AttractionType;
 import com.ParkCore.model.Attraction;
 import com.ParkCore.service.AttractionService;
@@ -33,7 +35,7 @@ public class AttractionController {
                             schema = @Schema(implementation = Attraction.class))),
     })
     @GetMapping
-    public ResponseEntity<List<Attraction>> listAttractions() {
+    public ResponseEntity<List<AttractionResponseDTO>> listAttractions() {
         var attractions = attractionService.listAttractions();
         return ResponseEntity.ok(attractions);
     }
@@ -46,7 +48,7 @@ public class AttractionController {
             @ApiResponse(responseCode = "404", description = "No attractions found for the specified type")
     })
     @GetMapping("/attractionType/{type}")
-    public ResponseEntity<List<Attraction>> getAttractionsByType(@PathVariable AttractionType type) {
+    public ResponseEntity<List<AttractionResponseDTO>> getAttractionsByType(@PathVariable AttractionType type) {
         var attractions = attractionService.findByType(type);
         return ResponseEntity.ok(attractions);
     }
@@ -59,8 +61,8 @@ public class AttractionController {
             @ApiResponse(responseCode = "400", description = "The attraction has already been registered")
     })
     @PostMapping
-    public ResponseEntity<Attraction> createAttraction(@RequestBody Attraction attractionRequest) {
-        var attraction = attractionService.createAttraction(attractionRequest);
+    public ResponseEntity<AttractionResponseDTO> createAttraction(@RequestBody AttractionRequestDTO attractionRequestDTO) {
+        var attraction = attractionService.createAttraction(attractionRequestDTO);
         return ResponseEntity.status(CREATED).body(attraction);
     }
 
