@@ -1,4 +1,4 @@
-package com.ParkCore.dto;
+package com.ParkCore.dto.attractionDto;
 
 import com.ParkCore.model.Attraction;
 import org.springframework.stereotype.Component;

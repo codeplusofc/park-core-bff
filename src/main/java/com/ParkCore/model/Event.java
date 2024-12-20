@@ -31,4 +31,19 @@ public class Event {
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
     private List<Notification> notifications;
+
+    public Event(Long id, String name, String description, LocalDate eventDate, Attraction attraction, List<String> requiredResources, String status, List<Visitor> confirmedParticipants, List<Notification> notifications) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.eventDate = eventDate;
+        this.attraction = attraction;
+        this.requiredResources = requiredResources;
+        this.status = status;
+        this.confirmedParticipants = confirmedParticipants;
+        this.notifications = notifications;
+    }
+    public Event(){
+
+    }
 }
