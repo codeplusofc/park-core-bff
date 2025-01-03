@@ -12,19 +12,55 @@ import lombok.Setter;
 @Setter
 public class AttractionRequestDTO {
 
-    @NotBlank(message = "O nome da atração é obrigatório.")
+
     private String name;
 
-    @NotBlank(message = "...")
+
     private String description ;
 
-    @NotNull(message = "...")
+
     private AttractionType type;
 
-    @Min(value =1, message = "...")
-    @Max(value = 1000, message = "...")
+
     private int maximumCapacity;
 
 
+    public AttractionRequestDTO(String name, String description, AttractionType type, int maximumCapacity) {
+        this.name = name;
+        this.description = description;
+        this.type = type;
+        this.maximumCapacity = maximumCapacity;
+    }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public AttractionType getType() {
+        return type;
+    }
+
+    public void setType(AttractionType type) {
+        this.type = type;
+    }
+
+    public int getMaximumCapacity() {
+        return maximumCapacity;
+    }
+
+    public void setMaximumCapacity(int maximumCapacity) {
+        this.maximumCapacity = maximumCapacity;
+    }
 }

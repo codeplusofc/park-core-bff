@@ -1,5 +1,8 @@
 package com.ParkCore.service;
 
+import com.ParkCore.dto.attractionDto.AttractionConverter;
+import com.ParkCore.dto.attractionDto.AttractionRequestDTO;
+import com.ParkCore.dto.attractionDto.AttractionResponseDTO;
 import com.ParkCore.enums.AttractionType;
 import com.ParkCore.exceptions.BadRequestException;
 import com.ParkCore.exceptions.NoContentException;
@@ -26,8 +29,7 @@ import static org.assertj.core.api.BDDAssertions.thenThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -38,6 +40,9 @@ public class AttractionServiceTest {
     private AttractionRepository attractionRepository;
 
     @Mock
+    private AttractionConverter attractionConverter;
+
+    @Mock
     private EventRepository eventRepository;
 
     @InjectMocks
@@ -45,23 +50,41 @@ public class AttractionServiceTest {
 
     @Test
     public void shouldRegisterAttraction() {
-        // Cenario
+        // Cenário
+        var attractionRequest = mock(AttractionRequestDTO.class);
         var newAttraction = mock(Attraction.class);
+        var responseDTO = mock(AttractionResponseDTO.class);
 
-        // Simulando os dados da atração
+        // Configuração do DTO de requisição
+        given(attractionRequest.getName()).willReturn("Rolling Coaster");
+        given(attractionRequest.getDescription()).willReturn("Amazing Roller Coaster!");
+        given(attractionRequest.getType()).willReturn(ROLLER_COASTER);
+        given(attractionRequest.getMaximumCapacity()).willReturn(50);
+
+        // Configuração da entidade
         given(newAttraction.getId()).willReturn(1L);
         given(newAttraction.getName()).willReturn("Rolling Coaster");
         given(newAttraction.getDescription()).willReturn("Amazing Roller Coaster!");
         given(newAttraction.getType()).willReturn(ROLLER_COASTER);
         given(newAttraction.getMaximumCapacity()).willReturn(50);
 
-        // Simula a ação de salvar a atração no repositório
+        // Configuração do conversor e repositório
+        given(attractionConverter.toEntity(attractionRequest)).willReturn(newAttraction);
         given(attractionRepository.save(newAttraction)).willReturn(newAttraction);
+        given(attractionConverter.toResponseDTO(newAttraction)).willReturn(responseDTO);
+
+        // Configuração do DTO de resposta
+        given(responseDTO.getId()).willReturn(1L);
+        given(responseDTO.getName()).willReturn("Rolling Coaster");
+        given(responseDTO.getDescription()).willReturn("Amazing Roller Coaster!");
+        given(responseDTO.getType()).willReturn(ROLLER_COASTER);
+        given(responseDTO.getMaximumCapacity()).willReturn(50);
 
         // Quando
-        var result = attractionService.createAttraction(newAttraction);
+        var result = attractionService.createAttraction(attractionRequest);
 
         // Validação
+        assertNotNull(result); // Verifica se o resultado não é nulo
         assertEquals(1L, result.getId());
         assertEquals("Rolling Coaster", result.getName());
         assertEquals("Amazing Roller Coaster!", result.getDescription());
@@ -75,8 +98,13 @@ public class AttractionServiceTest {
         // Cenário: Nome da atração não está registrado no banco de dados
         var uniqueName = "Amazing Roller Coaster";
 
-        // Simulação: existsByNome retorna false para o nome informado
+        var attractionRequest = mock(AttractionRequestDTO.class);
+
+        // Simulação: existsByName retorna false para o nome informado
         given(attractionRepository.existsByName(uniqueName)).willReturn(false);
+
+        // Simulação de dados do DTO
+        given(attractionRequest.getName()).willReturn(uniqueName);
 
         // Criação de nova atração com o nome configurado
         var newAttraction = new Attraction();
@@ -85,16 +113,22 @@ public class AttractionServiceTest {
         // Simulação: save retorna a atração que está sendo passada
         given(attractionRepository.save(newAttraction)).willReturn(newAttraction);
 
-        // Quando: Tentamos criar uma nova atração
-        var result = attractionService.createAttraction(newAttraction);
+        given(attractionConverter.toEntity(attractionRequest)).willReturn(newAttraction);
 
-        // Então: O nome deve ser o nome que configuramos e único
-        assertEquals(uniqueName, result.getName());
-        assertFalse(attractionRepository.existsByName(uniqueName));
+        // Quando: Tentamos criar uma nova atração
+        var result = attractionService.createAttraction(attractionRequest);
+
+        // Então: Verifica que o nome foi verificado como único antes da criação
+        verify(attractionRepository).existsByName(uniqueName);  // Verifica se a verificação foi feita
+        assertEquals(uniqueName, result.getName());              // Verifica o nome da atração
+        assertNotNull(result.getId());                           // Verifica se o ID foi atribuído
     }
+
 
     @Test
     public void shouldReturnErrorNameNotUnique() {
+
+        var attractionRequest = mock(AttractionRequestDTO.class);
 
         // Simula uma instância da classe Atracao, permitindo que métodos desta instância sejam mockados
         var attraction = mock(Attraction.class);
@@ -108,8 +142,10 @@ public class AttractionServiceTest {
         // Simula o comportamento do método existsByNome() para retornar true, indicando que o nome "jhon" já existe no repositório (nome não é único)
         given(attractionRepository.existsByName(attraction.getName())).willReturn(true);
 
+        given(attractionConverter.toEntity(attractionRequest)).willReturn(attraction);
+
         // Verifica que, ao tentar criar uma nova atração com nome duplicado, o método createAtracao() deve lançar uma exceção do tipo BadRequestException
-        thenThrownBy(() -> attractionService.createAttraction(attraction))
+        thenThrownBy(() -> attractionService.createAttraction(attractionRequest))
                 .isInstanceOf(BadRequestException.class);
     }
 
@@ -149,15 +185,21 @@ public class AttractionServiceTest {
         var attraction1 = mock(Attraction.class);
         var attraction2 = mock(Attraction.class);
 
+        var attractionDTO1 = mock(AttractionResponseDTO.class);
+        var attractionDTO2 = mock(AttractionResponseDTO.class);
+
         //O repositorio retorna uma lista de atrações
         given(attractionRepository.findAll()).willReturn(List.of(attraction1, attraction2));
+
+        given(attractionConverter.toResponseDTO(attraction1)).willReturn(attractionDTO1);
+        given(attractionConverter.toResponseDTO(attraction2)).willReturn(attractionDTO2);
 
         //Quando o metodo listaAtracoes é chamado
         var result = attractionService.listAttractions();
         //entao verifica se o resultado contém as atracoes simuladas
         assertEquals(2, result.size());//deve conter 2 atracoes
-        assertEquals(attraction1, result.get(0));
-        assertEquals(attraction2, result.get(1));
+        assertEquals(attractionDTO1, result.get(0));
+        assertEquals(attractionDTO2, result.get(1));
 
     }
 
@@ -176,13 +218,20 @@ public class AttractionServiceTest {
         var attraction1 = mock(Attraction.class);
         var attraction2 = mock(Attraction.class);
 
+        var attractionDTO1 = mock(AttractionResponseDTO.class);
+        var attractionDTO2 = mock(AttractionResponseDTO.class);
+
         given(attractionRepository.findByType(type)).willReturn(List.of(attraction1, attraction2));
+
+        given(attractionConverter.toResponseDTO(attraction1)).willReturn(attractionDTO1);
+        given(attractionConverter.toResponseDTO(attraction2)).willReturn(attractionDTO2);
+
 
         var result = attractionService.findByType(type);
 
         assertEquals(2, result.size());
-        assertEquals(attraction1, result.get(0));
-        assertEquals(attraction2, result.get(1));
+        assertEquals(attractionDTO1, result.get(0));
+        assertEquals(attractionDTO2, result.get(1));
     }
 
     @Test

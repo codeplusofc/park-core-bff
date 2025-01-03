@@ -1,6 +1,6 @@
 package com.ParkCore.service;
 
-import com.ParkCore.dto.attractionDto.AttractionMapper;
+import com.ParkCore.dto.attractionDto.AttractionConverter;
 import com.ParkCore.dto.attractionDto.AttractionRequestDTO;
 import com.ParkCore.dto.attractionDto.AttractionResponseDTO;
 import com.ParkCore.enums.AttractionType;
@@ -20,12 +20,12 @@ public class AttractionService {
 
     private final AttractionRepository attractionRepository;
     private final EventRepository eventRepository;
-    private final AttractionMapper attractionMapper;
+    private final AttractionConverter attractionConverter;
 
-    public AttractionService(AttractionRepository attractionRepository, EventRepository eventRepository, AttractionMapper attractionMapper) {
+    public AttractionService(AttractionRepository attractionRepository, EventRepository eventRepository, AttractionConverter attractionConverter) {
         this.attractionRepository = attractionRepository;
         this.eventRepository = eventRepository;
-        this.attractionMapper = attractionMapper;
+        this.attractionConverter = attractionConverter;
     }
 
     private boolean isNameUnique(String name) {
@@ -40,16 +40,16 @@ public class AttractionService {
         if (!isNameUnique(dto.getName())) {
             throw new BadRequestException("Error creating attraction: An attraction with the name '" + dto.getName() + "' already exists in the system.");
         }
-        var attraction = attractionMapper.toEntity(dto);
+        var attraction = attractionConverter.toEntity(dto);
         attraction = attractionRepository.save(attraction);
-        return attractionMapper.toResponseDTO(attraction);
+        return attractionConverter.toResponseDTO(attraction);
 
     }
 
     public List<AttractionResponseDTO> listAttractions() {
         var attractions = attractionRepository.findAll();
         return attractions.stream()
-                .map(attractionMapper::toResponseDTO)
+                .map(attractionConverter::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
@@ -59,7 +59,7 @@ public class AttractionService {
             throw new NoContentException("No attractions of type '" + type + "' were found in the system.");
         }
         return attractions.stream()
-                .map(attractionMapper::toResponseDTO)
+                .map(attractionConverter::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
